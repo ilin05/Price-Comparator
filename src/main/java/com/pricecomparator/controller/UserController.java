@@ -97,5 +97,16 @@ public class UserController {
         return userService.userLogin(email, password);
     }
 
+    // 查看商品价格历史
+    @GetMapping("/getProductPriceHistory")
+    public ApiResult getProductPriceHistory(@RequestParam String productId) throws IOException {
+        return userService.getProductPriceHistory(productId);
+    }
+
+    // 获取商品降价提醒
+    @GetMapping("/checkFavoriteProductsPrice")
+    public ApiResult checkFavoriteProductsPrice(@RequestParam String email) throws IOException, InterruptedException {
+        return userService.checkFavoriteProductsPrice(email);
+    }
 
 }

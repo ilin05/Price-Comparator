@@ -3,6 +3,8 @@ package com.pricecomparator.utils;
 import lombok.Getter;
 import lombok.ToString;
 
+import java.util.List;
+
 public class ApiResult {
     public Integer code;
     public String message;
@@ -36,4 +38,5 @@ public class ApiResult {
     public static ApiResult failure(Integer code,String message) {
         return new ApiResult(code, message, null);
     }
+
 }

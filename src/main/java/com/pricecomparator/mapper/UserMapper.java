@@ -84,4 +84,12 @@ public interface UserMapper {
     // 如果价格低于历史最低价，更新历史最低价
     @Update("update products set price=#{price} where id=#{productId}")
     public int updatePrice(String productId, double price);
+
+    // 获取商品价格历史
+    @Select("select price from prices where product_id = #{productId}")
+    public List<Double> getPriceHistory(String productId);
+
+    // 获取商品价格历史
+    @Select("select checked_at from prices where product_id = #{productId}")
+    public List<String> getCheckedAt(String productId);
 }

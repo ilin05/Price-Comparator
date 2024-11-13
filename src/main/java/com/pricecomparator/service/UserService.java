@@ -38,24 +38,9 @@ public interface UserService {
     // 用户登录
     ApiResult userLogin(String email, String password);
 
-    // 查阅淘宝商品
-    ApiResult searchTaobao(String searchProductName) throws IOException, InterruptedException;
-
-    // 查阅唯品会商品
-    ApiResult searchVip(String searchProductName) throws IOException;
-
-    // 查阅苏宁易购商品
-    ApiResult searchSuning(String searchProductName) throws IOException;
-
-    // 查阅淘宝商品详情页
-    ApiResult searchTaobaoDetail(String productId) throws IOException;
-
-    // 查阅唯品会商品详情页
-    ApiResult searchVipDetail(String productId) throws IOException, InterruptedException;
-
-    // 查阅苏宁易购商品详情页
-    ApiResult searchSuningDetail(String productId) throws IOException;
-
     // 检查收藏的商品是否降价
     ApiResult checkFavoriteProductsPrice(String email) throws IOException, InterruptedException;
+
+    // 获取商品价格历史
+    ApiResult getProductPriceHistory(String productId) throws IOException;
 }

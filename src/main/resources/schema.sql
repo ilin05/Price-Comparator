@@ -16,9 +16,9 @@ CREATE TABLE products (
     category VARCHAR(255),
     specification VARCHAR(255),
     barcode VARCHAR(50),
-    image_url VARCHAR(255),
+    image_url TEXT,
     platform VARCHAR(50),
-    link VARCHAR(255),
+    link TEXT,
     price DECIMAL(10, 2)
 );
 
