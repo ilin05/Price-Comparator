@@ -4,18 +4,11 @@ import com.pricecomparator.mapper.UserMapper;
 import com.pricecomparator.service.UserService;
 import com.pricecomparator.utils.ApiResult;
 import org.apache.xmlbeans.impl.piccolo.io.IllegalCharException;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import org.junit.jupiter.api.Test;
-import org.openqa.selenium.Cookie;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import com.pricecomparator.service.ProductScrapter;
 import com.pricecomparator.utils.ProductSearcher;
 import com.pricecomparator.entities.*;
-import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.edge.EdgeDriver;
 import org.openqa.selenium.edge.EdgeOptions;
 
@@ -23,10 +16,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
@@ -39,13 +29,28 @@ class PriceComparatorApplicationTests {
     static EdgeOptions options = new EdgeOptions();
     static ProductSearcher productSearcher = new ProductSearcher();
     @Autowired
+    private UserMapper userMapper;
+    @Autowired
     private UserService userService;
 
     @Test
     void testCheckPriceChange() throws IOException, InterruptedException {
         String email = "zhanglin20050530@163.com";
         ApiResult result = userService.checkFavoriteProductsPrice(email);
-        System.out.println(result.payload);
+        List<Product> productList = (List<Product>) result.payload;
+        for (Product product : productList) {
+            System.out.println(product);
+        }
+        //System.out.println(result.payload);
+    }
+
+    @Test
+    void testFindFavoriteProducts(){
+        String email = "zhanglin20050530@163.com";
+        List<Product> productList = userMapper.getFavorites(email);
+        for (Product product : productList) {
+            System.out.println(product);
+        }
     }
 
     @Test
@@ -127,6 +132,7 @@ class PriceComparatorApplicationTests {
             productList.addAll(taobaoList);
             productList.addAll(suningList);
             productList.addAll(vipList);
+            Collections.shuffle(productList);
             for(Product product : productList){
                 System.out.println(product);
             }

@@ -25,11 +25,9 @@ import java.util.regex.Pattern;
 public class UserServiceImpl implements UserService {
     static EdgeOptions options = new EdgeOptions();
     private final UserMapper userMapper;
-    private final ProductScrapter productScrapter;
 
-    public UserServiceImpl(UserMapper userMapper, ProductScrapter productScrapter) {
+    public UserServiceImpl(UserMapper userMapper) {
         this.userMapper = userMapper;
-        this.productScrapter = productScrapter;
     }
 
     @Override
@@ -133,7 +131,7 @@ public class UserServiceImpl implements UserService {
             productList.addAll(taobaoList);
             productList.addAll(suningList);
             productList.addAll(vipList);
-            //Collections.shuffle(productList);
+            Collections.shuffle(productList);
 
             for(Product product : productList){
                 System.out.println("hello");
@@ -237,6 +235,8 @@ public class UserServiceImpl implements UserService {
                 userMapper.addPrice(productId, price);
                 userMapper.updatePrice(productId, price);
                 if(product.getPrice() > price){
+                    product.setPreviousPrice(product.getPrice());
+                    product.setPrice(price);
                     priceChangedProducts.add(product);
                 }
             }

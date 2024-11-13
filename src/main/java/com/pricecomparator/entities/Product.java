@@ -19,4 +19,5 @@ public class Product {
     private String barcodeUrl;
     private String imageUrl;
     private String link;
+    private double previousPrice;
 }
