@@ -234,8 +234,9 @@ public class UserServiceImpl implements UserService {
                 }
                 userMapper.addPrice(productId, price);
                 userMapper.updatePrice(productId, price);
-                if(product.getPrice() > price){
-                    product.setPreviousPrice(product.getPrice());
+                Double previousPrice = product.getPrice();
+                if(previousPrice > price){
+                    product.setPreviousPrice(previousPrice);
                     product.setPrice(price);
                     priceChangedProducts.add(product);
                 }
