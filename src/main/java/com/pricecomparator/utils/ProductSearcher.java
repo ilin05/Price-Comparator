@@ -38,6 +38,7 @@ public class ProductSearcher {
             Document document = Jsoup.parse(pageSource);
             //System.out.println(document);
             Elements goodsItems = document.select("a[class^=Card--doubleCardWrapper--]");
+            int count = 0;
             for(Element goodsItem : goodsItems){
                 if(goodsItem.select("div[class^=Title--title--]").select("span").text().length() == 0){
                     continue;
@@ -72,6 +73,10 @@ public class ProductSearcher {
                 product.setLink(productLink);
                 product.setImageUrl(pictUrl);
                 productList.add(product);
+                count++;
+                if(count == 10){
+                    break;
+                }
                 //String pictUrl = goodsItem.select("img").first().attr("src");
                 //System.out.println(goodsItem);
 //            System.out.println("商品id: " + productId);
@@ -81,6 +86,7 @@ public class ProductSearcher {
 //            System.out.println("商品链接: " + productLink);
 //            System.out.println("--------------------------");
             }
+            System.out.println(count);
             //return null;
             return productList;
         } catch (Exception e){
@@ -163,6 +169,8 @@ public class ProductSearcher {
             //System.out.println(document);
             Elements goodsItems = document.select(".c-goods-item");
             //System.out.println(goodsItems);
+            // 取前10个内容
+            int count = 0;
             for(Element goodsItem : goodsItems){
                 // 提取商品名称
                 String productName = goodsItem.select(".c-goods-item__name").text();
@@ -180,6 +188,64 @@ public class ProductSearcher {
                 product.setName(productName);
                 product.setPrice(Double.parseDouble(price));
                 product.setLink("https:" + productLink);
+                product.setImageUrl(imageUrl);
+                productList.add(product);
+                count++;
+                if(count == 10){
+                    break;
+                }
+                // 输出商品信息
+//                System.out.println("商品id: " + productId);
+//                System.out.println("商品名称: " + productName);
+//                System.out.println("价格: " + price);
+//                System.out.println("图片路径: " + imageUrl);
+//                System.out.println("商品链接: " + productLink);
+//                System.out.println("--------------------------");
+            }
+            return productList;
+        }
+        catch (Exception e){
+            // TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return null;
+        }
+    }
+
+    static public List<Product> searchXiaoMiYouPin(String searchProductName) throws IOException {
+        System.out.println("Search XiaoMiYouPin");
+        try {
+            List<Product> productList = new ArrayList<Product>();
+            String url = "https://www.xiaomiyoupin.com/search?keyword=" + searchProductName;
+            options.setExperimentalOption("debuggerAddress", "127.0.0.1:9222");
+            options.addArguments("--headless=old"); // 无头模式
+            WebDriver driver = new EdgeDriver(options);
+            driver.get(url);
+            Thread.sleep(5000); //等页面加载完成
+            String pageSource = driver.getPageSource();
+            driver.quit();
+            Document document = Jsoup.parse(pageSource);
+            // System.out.println(document);
+            Elements goodsItems = document.select(".pro-item");
+            System.out.println("hello from xiaomi");
+            // System.out.println(goodsItems);
+
+            for(Element goodsItem : goodsItems){
+                // System.out.println(goodsItem);
+                // 提取商品名称
+                String productName = goodsItem.select(".pro-name").attr("title");
+                // 提取价格
+                String price = goodsItem.select(".pro-price .m-num").text();
+                // 提取商品链接
+                String productLink = goodsItem.attr("data-src");
+                // 提取商品id
+                int startIndex = productLink.indexOf("gid=");
+                String productId = productLink.substring(startIndex + 4);
+                String imageUrl = goodsItem.select(".pro-img").select("img").attr("src");
+                Product product = new Product();
+                product.setPlatform("小米有品");
+                product.setId("xm_" + productId);
+                product.setName(productName);
+                product.setPrice(Double.parseDouble(price));
+                product.setLink(productLink);
                 product.setImageUrl(imageUrl);
                 productList.add(product);
                 // 输出商品信息
@@ -256,6 +322,56 @@ public class ProductSearcher {
             return Double.parseDouble(price);
         }
         catch (Exception e){
+            return null;
+        }
+    }
+
+    public static Double getXMPrice(String url) throws IOException {
+        try {
+            options.setExperimentalOption("debuggerAddress", "127.0.0.1:9222");
+            options.addArguments("--headless=old"); // 无头模式
+            WebDriver driver = new EdgeDriver(options);
+            driver.get(url);
+            Thread.sleep(5000); //等页面加载完成
+            String pageSource = driver.getPageSource();
+            driver.quit();
+            Document document = Jsoup.parse(pageSource);
+            Elements priceElements = document.select(".price .value");
+            if (!priceElements.isEmpty()) {
+                String price = priceElements.first().text();
+                System.out.println("商品价格: " + price);
+                return Double.valueOf(price);
+            } else {
+                System.out.println("未找到价格信息");
+                return null;
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return null;
+        }
+    }
+
+    public Double getJDPrice(String url) throws IOException {
+        try {
+            options.setExperimentalOption("debuggerAddress", "127.0.0.1:9222");
+            options.addArguments("--headless=old"); // 无头模式
+            WebDriver driver = new EdgeDriver(options);
+            driver.get(url);
+            Thread.sleep(5000); //等页面加载完成
+            String pageSource = driver.getPageSource();
+            driver.quit();
+            Document document = Jsoup.parse(pageSource);
+            System.out.println(document);
+            Elements priceElements = document.select(".finalPrice .price");
+            if (!priceElements.isEmpty()) {
+                String price = priceElements.first().text();
+                System.out.println("商品价格: " + price);
+                return Double.valueOf(price);
+            } else {
+                System.out.println("未找到价格信息");
+                return null;
+            }
+        } catch (Exception e) {
             return null;
         }
     }

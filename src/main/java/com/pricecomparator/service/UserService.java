@@ -4,6 +4,7 @@ import com.pricecomparator.entities.*;
 import com.pricecomparator.utils.ApiResult;
 import org.checkerframework.checker.units.qual.A;
 
+import javax.mail.MessagingException;
 import java.io.IOException;
 
 public interface UserService {
@@ -12,7 +13,7 @@ public interface UserService {
     ApiResult getSearchRecords(Integer id);
 
     // 创建用户
-    ApiResult openAccount(User user);
+    ApiResult openAccount(User user, String verifyCode, String sha256Code);
 
     // 注销账号
     ApiResult deleteAccount(User user);
@@ -43,4 +44,7 @@ public interface UserService {
 
     // 获取商品价格历史
     ApiResult getProductPriceHistory(String productId) throws IOException;
+
+    // 验证邮箱
+    ApiResult checkEmail(String email) throws MessagingException;
 }

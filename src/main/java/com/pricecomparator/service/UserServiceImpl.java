@@ -5,19 +5,20 @@ import com.pricecomparator.service.*;
 import com.pricecomparator.mapper.UserMapper;
 import com.pricecomparator.utils.ApiResult;
 import com.pricecomparator.utils.ProductSearcher;
+import com.pricecomparator.utils.HashUtils;
 import org.checkerframework.checker.units.qual.A;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.openqa.selenium.edge.EdgeOptions;
 
+import javax.mail.*;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,8 +38,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public ApiResult openAccount(User user) {
+    public ApiResult openAccount(User user, String verifyCode, String sha256Code) {
         try{
+            if(!HashUtils.sha256Hash(verifyCode).equals(sha256Code)){
+                return ApiResult.failure("验证码错误");
+            }
             String email = user.getEmail();
             int count = userMapper.checkEmail(email);
             if(count > 0){
@@ -57,7 +61,7 @@ public class UserServiceImpl implements UserService {
             //System.out.println("count2: " + count2);
 
             System.out.println("hello3");
-            userMapper.openAccount(userName, user.getPassword(), email);
+            userMapper.openAccount(userName, HashUtils.sha256Hash(user.getPassword()), email);
             User newUser = userMapper.getUserByEmail(email);
             System.out.println("hello4");
             return ApiResult.success(newUser);
@@ -128,9 +132,19 @@ public class UserServiceImpl implements UserService {
             List<Product> taobaoList = ProductSearcher.searchTaobao(productName);
             List<Product> suningList = ProductSearcher.searchSuning(productName);
             List<Product> vipList = ProductSearcher.searchVip(productName);
-            productList.addAll(taobaoList);
-            productList.addAll(suningList);
-            productList.addAll(vipList);
+            List<Product> xmList = ProductSearcher.searchXiaoMiYouPin(productName);
+            if(taobaoList != null){
+                productList.addAll(taobaoList);
+            }
+            if(suningList != null){
+                productList.addAll(suningList);
+            }
+            if(vipList != null){
+                productList.addAll(vipList);
+            }
+            if(xmList != null){
+                productList.addAll(xmList);
+            }
             Collections.shuffle(productList);
 
             for(Product product : productList){
@@ -193,7 +207,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public ApiResult userLogin(String email, String password) {
         try{
-            int count = userMapper.judgePassword(email, password);
+            int count = userMapper.judgePassword(email, HashUtils.sha256Hash(password));
             if(count != 1){
                 return ApiResult.failure("账户名或密码错误！");
             }else{
@@ -231,6 +245,8 @@ public class UserServiceImpl implements UserService {
                     price = ProductSearcher.getVipPrice(url);
                 }else if(platform.equals("苏宁易购")){
                     price = ProductSearcher.getSuningPrice(url);
+                }else if(platform.equals("小米有品")){
+                    price = ProductSearcher.getXMPrice(url);
                 }
                 userMapper.addPrice(productId, price);
                 userMapper.updatePrice(productId, price);
@@ -265,6 +281,48 @@ public class UserServiceImpl implements UserService {
             return ApiResult.failure("Error getting product price history");
         }
         //return null;
+    }
+
+    @Override
+    public ApiResult checkEmail(String email) throws MessagingException {
+        try{
+            String username = "2105578728@qq.com";
+            String password = "xqknugfuqqykcdeb";
+
+            Properties props = new Properties();
+            props.put("mail.smtp.host", "smtp.qq.com");
+            props.put("mail.smtp.auth", "true");
+            props.put("mail.smtp.port", "25");
+            props.put("mail.smtp.starttls.enable", "true");
+
+            Session session = Session.getInstance(props, new Authenticator() {
+                @Override
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication(username, password);
+                }
+            });
+            session.setDebug(true);
+
+            // 生成六位随机数
+            StringBuilder code = new StringBuilder();
+            for(int i = 0; i < 6; i++){
+                code.append((int) (Math.random() * 10));
+            }
+            System.out.println("code: " + code);
+            String sha256Code = HashUtils.sha256Hash(code.toString());
+            MimeMessage message = new MimeMessage(session);
+            message.setSubject("Price Comparator 验证码");
+            message.setText("您好！您的验证码是：" + code);
+            message.setFrom(new InternetAddress("2105578728@qq.com"));
+            message.setRecipients(Message.RecipientType.TO, String.valueOf(new InternetAddress(email)));
+
+            Transport.send(message);
+            return ApiResult.success(sha256Code);
+        }
+        catch (Exception e){
+            //TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return ApiResult.failure("Error sending email");
+        }
     }
 
 }

@@ -17,10 +17,15 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.mail.*;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 
 import static org.awaitility.Awaitility.await;
 
@@ -32,6 +37,49 @@ class PriceComparatorApplicationTests {
     private UserMapper userMapper;
     @Autowired
     private UserService userService;
+
+    @Test
+    void testXMProductPrice() throws IOException {
+        String url = "https://www.xiaomiyoupin.com/detail?gid=162729";
+        Double price = ProductSearcher.getXMPrice(url);
+        System.out.println("商品价格: " + price);
+    }
+
+    @Test
+    void testXMCrawler() throws IOException {
+        List<Product> productList = ProductSearcher.searchXiaoMiYouPin("手机");
+        for(Product product : productList){
+            System.out.println(product);
+        }
+    }
+
+    @Test
+    void testSendMail() throws MessagingException {
+        String username = "2105578728@qq.com";
+        String password = "xqknugfuqqykcdeb";
+
+        Properties props = new Properties();
+        props.put("mail.smtp.host", "smtp.qq.com");
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.port", "25");
+        props.put("mail.smtp.starttls.enable", "true");
+
+        Session session = Session.getInstance(props, new Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(username, password);
+            }
+        });
+        session.setDebug(true);
+
+        MimeMessage message = new MimeMessage(session);
+        message.setSubject("测试邮件");
+        message.setText("这是一封测试邮件");
+        message.setFrom(new InternetAddress("2105578728@qq.com"));
+        message.setRecipients(Message.RecipientType.TO, String.valueOf(new InternetAddress("zhanglin20050530@163.com")));
+
+        Transport.send(message);
+    }
 
     @Test
     void testCheckPriceChange() throws IOException, InterruptedException {
@@ -95,8 +143,19 @@ class PriceComparatorApplicationTests {
     }
 
     @Test
+    void testGetJDProductPrice(){
+        String url = "https://item.jd.com/11523185865.html";
+        try {
+            Double price = productSearcher.getJDPrice(url);
+            System.out.println("商品价格: " + price);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Test
     void testSearchTBProduct() throws IOException, InterruptedException {
-        String productName = "大米";
+        String productName = "充电宝";
         List<Product> productList = productSearcher.searchTaobao(productName);
         for(Product product : productList){
             System.out.println(product);

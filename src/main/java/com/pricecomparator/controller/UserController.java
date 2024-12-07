@@ -6,6 +6,7 @@ import com.pricecomparator.utils.ApiResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.mail.MessagingException;
 import java.io.IOException;
 import java.util.Map;
 import java.util.List;
@@ -24,7 +25,9 @@ public class UserController {
         user.setPassword(newAccountInfo.get("password"));
         user.setEmail(newAccountInfo.get("email"));
         user.setUserName(newAccountInfo.get("userName"));
-        return userService.openAccount(user);
+        String verifyCode = newAccountInfo.get("verificationCode");
+        String sha256Code = newAccountInfo.get("sha256Code");
+        return userService.openAccount(user, verifyCode, sha256Code);
     }
 //    public ApiResult openAccount(@RequestParam User user) {
 //        return userService.openAccount(user);
@@ -107,6 +110,12 @@ public class UserController {
     @GetMapping("/checkFavoriteProductsPrice")
     public ApiResult checkFavoriteProductsPrice(@RequestParam String email) throws IOException, InterruptedException {
         return userService.checkFavoriteProductsPrice(email);
+    }
+
+    // 验证邮箱
+    @GetMapping("/checkEmail")
+    public ApiResult checkEmail(@RequestParam String email) throws MessagingException {
+        return userService.checkEmail(email);
     }
 
 }
