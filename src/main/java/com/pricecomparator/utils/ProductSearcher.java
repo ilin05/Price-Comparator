@@ -8,7 +8,6 @@ import com.pricecomparator.entities.*;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.edge.EdgeDriver;
 import org.openqa.selenium.edge.EdgeOptions;
-import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -17,15 +16,19 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ProductSearcher {
-    static EdgeOptions options = new EdgeOptions();
+    // static EdgeOptions options = new EdgeOptions();
 
     static public List<Product> searchTaobao(String searchProductName) throws InterruptedException {
         System.out.println("Search Taobao");
         try {
+            EdgeOptions options = new EdgeOptions();
+//            options.setExperimentalOption("debuggerAddress", "127.0.0.1:9226");
+//            options.addArguments("--headless=old");
             List<Product> productList = new ArrayList<Product>();
             String url = "https://uland.taobao.com/sem/tbsearch?q=" + searchProductName;
             options.setExperimentalOption("debuggerAddress", "127.0.0.1:9222");
@@ -36,15 +39,19 @@ public class ProductSearcher {
             String pageSource = driver.getPageSource();
             driver.quit();
             Document document = Jsoup.parse(pageSource);
-            //System.out.println(document);
+            // System.out.println(document);
             Elements goodsItems = document.select("a[class^=Card--doubleCardWrapper--]");
             int count = 0;
             for(Element goodsItem : goodsItems){
+                // System.out.println(goodsItem);
                 if(goodsItem.select("div[class^=Title--title--]").select("span").text().length() == 0){
                     continue;
                 }
+                // System.out.println("hello1");
                 String productLink = goodsItem.attr("href");
-                String pattern = "i(\\d+)\\.htm";
+                System.out.println(productLink);
+                // String pattern = "i(\\d+)\\.htm";
+                String pattern = "id=(\\d+)"; // 匹配商品id
                 Pattern r = Pattern.compile(pattern);
                 Matcher m = r.matcher(productLink);
                 String productId = "";
@@ -55,6 +62,7 @@ public class ProductSearcher {
                 if(productId.length() == 0){
                     continue;
                 }
+                // System.out.println("hello2");
                 Product product = new Product();
                 //System.out.println(goodsItem.select("div[class^=Title--title--]").select("span").text());
                 //System.out.println(goodsItem);
@@ -79,12 +87,12 @@ public class ProductSearcher {
                 }
                 //String pictUrl = goodsItem.select("img").first().attr("src");
                 //System.out.println(goodsItem);
-//            System.out.println("商品id: " + productId);
-//            System.out.println("商品名称: " + description);
-//            System.out.println("价格: " + price);
-//            System.out.println("图片路径: " + pictUrl);
-//            System.out.println("商品链接: " + productLink);
-//            System.out.println("--------------------------");
+//                System.out.println("商品id: " + productId);
+//                System.out.println("商品名称: " + description);
+//                System.out.println("价格: " + price);
+//                System.out.println("图片路径: " + pictUrl);
+//                System.out.println("商品链接: " + productLink);
+//                System.out.println("--------------------------");
             }
             System.out.println(count);
             //return null;
@@ -97,10 +105,13 @@ public class ProductSearcher {
     static public List<Product> searchSuning(String searchProductName) throws InterruptedException {
         System.out.println("Search Suning");
         try {
+            EdgeOptions options = new EdgeOptions();
+//            options.setExperimentalOption("debuggerAddress", "127.0.0.1:9223");
+//            options.addArguments("--headless=old");
             List<Product> productList = new ArrayList<Product>();
             String url = "https://search.suning.com/" + searchProductName + "/";
-            options.setExperimentalOption("debuggerAddress", "127.0.0.1:9222");
-            options.addArguments("--headless=old"); // 无头模式
+            options.setExperimentalOption("debuggerAddress", "127.0.0.1:9223");
+            options.addArguments("--headless=old");
             WebDriver driver = new EdgeDriver(options);
             driver.get(url);
             Thread.sleep(5000); //等页面加载完成
@@ -156,10 +167,13 @@ public class ProductSearcher {
     static public List<Product> searchVip(String searchProductName) throws IOException {
         System.out.println("Search Vip");
         try {
+            EdgeOptions options = new EdgeOptions();
+//            options.setExperimentalOption("debuggerAddress", "127.0.0.1:9224");
+//            options.addArguments("--headless=old");
             List<Product> productList = new ArrayList<Product>();
             String url = "https://category.vip.com/suggest.php?keyword=" + searchProductName;
-            options.setExperimentalOption("debuggerAddress", "127.0.0.1:9222");
-            options.addArguments("--headless=old"); // 无头模式
+            options.setExperimentalOption("debuggerAddress", "127.0.0.1:9224");
+            options.addArguments("--headless=old");
             WebDriver driver = new EdgeDriver(options);
             driver.get(url);
             Thread.sleep(5000); //等页面加载完成
@@ -213,10 +227,11 @@ public class ProductSearcher {
     static public List<Product> searchXiaoMiYouPin(String searchProductName) throws IOException {
         System.out.println("Search XiaoMiYouPin");
         try {
+            EdgeOptions options = new EdgeOptions();
+            options.setExperimentalOption("debuggerAddress", "127.0.0.1:9225");
+            options.addArguments("--headless=old");
             List<Product> productList = new ArrayList<Product>();
             String url = "https://www.xiaomiyoupin.com/search?keyword=" + searchProductName;
-            options.setExperimentalOption("debuggerAddress", "127.0.0.1:9222");
-            options.addArguments("--headless=old"); // 无头模式
             WebDriver driver = new EdgeDriver(options);
             driver.get(url);
             Thread.sleep(5000); //等页面加载完成
@@ -266,6 +281,7 @@ public class ProductSearcher {
 
     public static Double getTaobaoPrice(String url) throws IOException {
         try {
+            EdgeOptions options = new EdgeOptions();
             options.setExperimentalOption("debuggerAddress", "127.0.0.1:9222");
             options.addArguments("--headless=old"); // 无头模式
             WebDriver driver = new EdgeDriver(options);
@@ -284,7 +300,8 @@ public class ProductSearcher {
 
     public static Double getSuningPrice(String url) throws IOException {
         try {
-            options.setExperimentalOption("debuggerAddress", "127.0.0.1:9222");
+            EdgeOptions options = new EdgeOptions();
+            options.setExperimentalOption("debuggerAddress", "127.0.0.1:9223");
             options.addArguments("--headless=old"); // 无头模式
             WebDriver driver = new EdgeDriver(options);
             driver.get(url);
@@ -309,7 +326,8 @@ public class ProductSearcher {
 
     public static Double getVipPrice(String url) throws IOException {
         try {
-            options.setExperimentalOption("debuggerAddress", "127.0.0.1:9222");
+            EdgeOptions options = new EdgeOptions();
+            options.setExperimentalOption("debuggerAddress", "127.0.0.1:9224");
             options.addArguments("--headless=old"); // 无头模式
             WebDriver driver = new EdgeDriver(options);
             driver.get(url);
@@ -328,7 +346,8 @@ public class ProductSearcher {
 
     public static Double getXMPrice(String url) throws IOException {
         try {
-            options.setExperimentalOption("debuggerAddress", "127.0.0.1:9222");
+            EdgeOptions options = new EdgeOptions();
+            options.setExperimentalOption("debuggerAddress", "127.0.0.1:9225");
             options.addArguments("--headless=old"); // 无头模式
             WebDriver driver = new EdgeDriver(options);
             driver.get(url);
@@ -351,8 +370,9 @@ public class ProductSearcher {
         }
     }
 
-    public Double getJDPrice(String url) throws IOException {
+    public static Double getJDPrice(String url) throws IOException {
         try {
+            EdgeOptions options = new EdgeOptions();
             options.setExperimentalOption("debuggerAddress", "127.0.0.1:9222");
             options.addArguments("--headless=old"); // 无头模式
             WebDriver driver = new EdgeDriver(options);
@@ -413,6 +433,196 @@ public class ProductSearcher {
         }
 
         return productList;
+    }
+
+    public static List<Product> searchTogether(String productName) {
+        List<Product> productList = new ArrayList<>();
+
+        try {
+            CompletableFuture<List<Product>> taobaoFuture = CompletableFuture.supplyAsync(() -> {
+                try {
+                    return ProductSearcher.searchTaobao(productName);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+
+            CompletableFuture<List<Product>> suningFuture = CompletableFuture.supplyAsync(() -> {
+                try {
+                    return ProductSearcher.searchSuning(productName);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+
+            CompletableFuture<List<Product>> vipFuture = CompletableFuture.supplyAsync(() -> {
+                try {
+                    return ProductSearcher.searchVip(productName);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+
+            CompletableFuture<List<Product>> xmFuture = CompletableFuture.supplyAsync(() -> {
+                try {
+                    return ProductSearcher.searchXiaoMiYouPin(productName);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+
+            CompletableFuture<Void> allFutures = CompletableFuture.allOf(taobaoFuture, suningFuture, vipFuture, xmFuture);
+
+            allFutures.thenApply(v -> {
+                try {
+                    productList.addAll(taobaoFuture.get());
+                    productList.addAll(suningFuture.get());
+                    productList.addAll(vipFuture.get());
+                    productList.addAll(xmFuture.get());
+                    System.out.println("共搜索到" + productList.size() + "个商品");
+                } catch (InterruptedException | ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+                return null;
+            }).join();
+
+            for (Product product : productList) {
+                System.out.println(product);
+            }
+            System.out.println("共搜索到" + productList.size() + "个商品");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        return productList;
+    }
+
+    public static List<Product> checkFavoriteProductsPrice(List<Product> toCheckProducts){
+        try {
+            for(Product product : toCheckProducts){
+                System.out.println(product);
+            }
+            System.out.println("--------------------");
+            List<Product> TaoBaoProducts = new ArrayList<Product>();
+            List<Product> SuningProducts = new ArrayList<Product>();
+            List<Product> VipProducts = new ArrayList<Product>();
+            List<Product> XMProducts = new ArrayList<Product>();
+            for(Product product : toCheckProducts){
+                String platform = product.getPlatform();
+                if(platform.equals("淘宝")){
+                    TaoBaoProducts.add(product);
+                }else if(platform.equals("苏宁易购")){
+                    SuningProducts.add(product);
+                }else if(platform.equals("唯品会")){
+                    VipProducts.add(product);
+                }else if(platform.equals("小米有品")){
+                    XMProducts.add(product);
+                }
+            }
+            CompletableFuture<List<Product>> taobaoFuture = CompletableFuture.supplyAsync(() -> {
+                try {
+                    for(Product taobaoProduct : TaoBaoProducts){
+                        String url = taobaoProduct.getLink();
+                        Double price = ProductSearcher.getTaobaoPrice(url);
+                        Double previousPrice = taobaoProduct.getPrice();
+                        taobaoProduct.setPreviousPrice(previousPrice);
+                        taobaoProduct.setPrice(price);
+                    }
+                    return TaoBaoProducts;
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            CompletableFuture<List<Product>> suningFuture = CompletableFuture.supplyAsync(() -> {
+                try {
+                    for(Product suningProduct : SuningProducts){
+                        String url = suningProduct.getLink();
+                        Double price = ProductSearcher.getSuningPrice(url);
+                        Double previousPrice = suningProduct.getPrice();
+                        suningProduct.setPreviousPrice(previousPrice);
+                        suningProduct.setPrice(price);
+                    }
+                    return SuningProducts;
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            CompletableFuture<List<Product>> vipFuture = CompletableFuture.supplyAsync(() -> {
+                try {
+                    for(Product vipProduct : VipProducts){
+                        String url = vipProduct.getLink();
+                        Double price = ProductSearcher.getVipPrice(url);
+                        Double previousPrice = vipProduct.getPrice();
+                        vipProduct.setPreviousPrice(previousPrice);
+                        vipProduct.setPrice(price);
+                    }
+                    return VipProducts;
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            CompletableFuture<List<Product>> xmFuture = CompletableFuture.supplyAsync(() -> {
+                try {
+                    for(Product xmProduct : XMProducts){
+                        String url = xmProduct.getLink();
+                        Double price = ProductSearcher.getXMPrice(url);
+                        Double previousPrice = xmProduct.getPrice();
+                        xmProduct.setPreviousPrice(previousPrice);
+                        xmProduct.setPrice(price);
+                    }
+                    return XMProducts;
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            CompletableFuture<Void> allFutures = CompletableFuture.allOf(taobaoFuture, suningFuture, vipFuture, xmFuture);
+            List<Product> resultProducts = new ArrayList<Product>();
+            allFutures.thenApply(v -> {
+                try {
+                    resultProducts.addAll(taobaoFuture.get());
+                    resultProducts.addAll(suningFuture.get());
+                    resultProducts.addAll(vipFuture.get());
+                    resultProducts.addAll(xmFuture.get());
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+                return null;
+            }).join();
+            for (Product product : resultProducts) {
+                System.out.println(product);
+            }
+            System.out.println("共搜索到" + resultProducts.size() + "个商品");
+            return resultProducts;
+        }
+        catch (Exception e){
+            //TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static List<Product> searchProductInOneThread(String productName){
+        try{
+            List<Product> productList = new ArrayList<Product>();
+            List<Product> taobaoList = ProductSearcher.searchTaobao(productName);
+            List<Product> suningList = ProductSearcher.searchSuning(productName);
+            List<Product> vipList = ProductSearcher.searchVip(productName);
+            List<Product> xmList = ProductSearcher.searchXiaoMiYouPin(productName);
+            if(taobaoList != null){
+                productList.addAll(taobaoList);
+            }
+            if(suningList != null){
+                productList.addAll(suningList);
+            }
+            if(vipList != null){
+                productList.addAll(vipList);
+            }
+            if(xmList != null){
+                productList.addAll(xmList);
+            }
+            return productList;
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

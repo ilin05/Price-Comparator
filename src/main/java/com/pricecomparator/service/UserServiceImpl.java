@@ -1,12 +1,10 @@
 package com.pricecomparator.service;
 
 import com.pricecomparator.entities.*;
-import com.pricecomparator.service.*;
 import com.pricecomparator.mapper.UserMapper;
 import com.pricecomparator.utils.ApiResult;
 import com.pricecomparator.utils.ProductSearcher;
 import com.pricecomparator.utils.HashUtils;
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
@@ -16,11 +14,8 @@ import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -127,26 +122,10 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public ApiResult searchProducts(String productName) throws IOException {
-        List<Product> productList = new ArrayList<>();
         try {
-            List<Product> taobaoList = ProductSearcher.searchTaobao(productName);
-            List<Product> suningList = ProductSearcher.searchSuning(productName);
-            List<Product> vipList = ProductSearcher.searchVip(productName);
-            List<Product> xmList = ProductSearcher.searchXiaoMiYouPin(productName);
-            if(taobaoList != null){
-                productList.addAll(taobaoList);
-            }
-            if(suningList != null){
-                productList.addAll(suningList);
-            }
-            if(vipList != null){
-                productList.addAll(vipList);
-            }
-            if(xmList != null){
-                productList.addAll(xmList);
-            }
+            // List<Product> productList = ProductSearcher.searchProductInOneThread(productName);
+            List<Product> productList = ProductSearcher.searchTogether(productName);
             Collections.shuffle(productList);
-
             for(Product product : productList){
                 System.out.println("hello");
                 if(userMapper.getProductCount(product.getId()) == 0){
@@ -227,36 +206,47 @@ public class UserServiceImpl implements UserService {
             System.out.println("email: " + email);
             List<Product> products = userMapper.getFavorites(email);
             List<Product> priceChangedProducts = new ArrayList<Product>();
-            for(Product product : products){
-                System.out.println(product);
-            }
-            System.out.println("--------------------");
-            for(Product product : products){
-                String platform = product.getPlatform();
-                String productId = product.getId();
-                //String url = userMapper.getProductLink(productId);
-                String url = product.getLink();
-                System.out.println("url: " + url);
-                System.out.println("platform: " + platform);
-                Double price = 0.0;
-                if(platform.equals("淘宝")){
-                    price = ProductSearcher.getTaobaoPrice(url);
-                }else if(platform.equals("唯品会")){
-                    price = ProductSearcher.getVipPrice(url);
-                }else if(platform.equals("苏宁易购")){
-                    price = ProductSearcher.getSuningPrice(url);
-                }else if(platform.equals("小米有品")){
-                    price = ProductSearcher.getXMPrice(url);
-                }
-                userMapper.addPrice(productId, price);
-                userMapper.updatePrice(productId, price);
+//            for(Product product : products){
+//                System.out.println(product);
+//            }
+//            System.out.println("--------------------");
+
+            List<Product> checkedProducts = ProductSearcher.checkFavoriteProductsPrice(products);
+            for(Product product : checkedProducts){
+                userMapper.updatePrice(product.getId(), product.getPrice());
+                userMapper.addPrice(product.getId(), product.getPrice());
                 Double previousPrice = product.getPrice();
-                if(previousPrice > price){
-                    product.setPreviousPrice(previousPrice);
-                    product.setPrice(price);
+                if(previousPrice > product.getPrice()){
                     priceChangedProducts.add(product);
                 }
             }
+
+//            for(Product product : products){
+//                String platform = product.getPlatform();
+//                String productId = product.getId();
+//                //String url = userMapper.getProductLink(productId);
+//                String url = product.getLink();
+//                System.out.println("url: " + url);
+//                System.out.println("platform: " + platform);
+//                Double price = 0.0;
+//                if(platform.equals("淘宝")){
+//                    price = ProductSearcher.getTaobaoPrice(url);
+//                }else if(platform.equals("唯品会")){
+//                    price = ProductSearcher.getVipPrice(url);
+//                }else if(platform.equals("苏宁易购")){
+//                    price = ProductSearcher.getSuningPrice(url);
+//                }else if(platform.equals("小米有品")){
+//                    price = ProductSearcher.getXMPrice(url);
+//                }
+//                userMapper.addPrice(productId, price);
+//                userMapper.updatePrice(productId, price);
+//                Double previousPrice = product.getPrice();
+//                if(previousPrice > price){
+//                    product.setPreviousPrice(previousPrice);
+//                    product.setPrice(price);
+//                    priceChangedProducts.add(product);
+//                }
+//            }
             return ApiResult.success(priceChangedProducts);
         }
         catch (Exception e){
