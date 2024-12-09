@@ -4,7 +4,21 @@
 .\msedge.exe --remote-debugging-port=9222 --user-data-dir="D:\selenium\AutomationProfile"
 ```
 
-打开浏览器之后，登录淘宝，苏宁易购，唯品会三个网站
+```powershell
+.\msedge.exe --remote-debugging-port=9223 --user-data-dir="D:\selenium\AutomationProfile9223"
+```
+
+```powershell
+.\msedge.exe --remote-debugging-port=9224 --user-data-dir="D:\selenium\AutomationProfile9224"
+```
+
+```powershell
+.\msedge.exe --remote-debugging-port=9225 --user-data-dir="D:\selenium\AutomationProfile9225"
+```
+
+
+
+打开浏览器之后，在9222端口的浏览器上登录淘宝，在9223端口的浏览器上登录苏宁易购，在9222端口的浏览器上登录唯品会，在9225端口的浏览器上登录小米有品，共4个网站
 
 
 
