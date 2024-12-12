@@ -13,7 +13,9 @@ import org.openqa.selenium.edge.EdgeOptions;
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
@@ -87,11 +89,13 @@ public class UserServiceImpl implements UserService {
     @Override
     public ApiResult modifyPassword(String email, String oldPassword, String newPassword) {
         try{
-            int count = userMapper.judgePassword(email, oldPassword);
+            String hashedOldPassword = HashUtils.sha256Hash(oldPassword);
+            String hashedNewPassword = HashUtils.sha256Hash(newPassword);
+            int count = userMapper.judgePassword(email, hashedOldPassword);
             if(count != 1){
                 return ApiResult.failure("邮箱或密码错误");
             }
-            userMapper.updatePassword(newPassword, email);
+            userMapper.updatePassword(hashedNewPassword, email);
             return ApiResult.success(null);
         }catch (Exception e){
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
@@ -103,7 +107,8 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public ApiResult modifyUserName(String email, String password, String newUserName) {
         try{
-            int count = userMapper.judgePassword(email, password);
+            String hashedPassword = HashUtils.sha256Hash(password);
+            int count = userMapper.judgePassword(email, hashedPassword);
             if(count != 1){
                 return ApiResult.failure("邮箱或密码错误");
             }
@@ -124,9 +129,21 @@ public class UserServiceImpl implements UserService {
     public ApiResult searchProducts(String productName) throws IOException {
         try {
             // List<Product> productList = ProductSearcher.searchProductInOneThread(productName);
+            Process process = Runtime.getRuntime().exec("python.exe src/main/python/tellCategory.py \"" + productName + "\"");
+            InputStream inputStream = process.getInputStream();
+            process.waitFor();
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            byte[] buffer = new byte[1024];
+            int len = -1;
+            while ((len = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, len);
+            }
+            String category = outputStream.toString("GBK");
+
             List<Product> productList = ProductSearcher.searchTogether(productName);
             Collections.shuffle(productList);
             for(Product product : productList){
+                product.setCategory(category);
                 System.out.println("hello");
                 if(userMapper.getProductCount(product.getId()) == 0){
                     userMapper.addProduct(product);
@@ -187,10 +204,15 @@ public class UserServiceImpl implements UserService {
     public ApiResult userLogin(String email, String password) {
         try{
             int count = userMapper.judgePassword(email, HashUtils.sha256Hash(password));
+            String userName = userMapper.getUserName(email);
             if(count != 1){
                 return ApiResult.failure("账户名或密码错误！");
             }else{
-                return ApiResult.success(email);
+                HashMap<String, String> user = new HashMap<String, String>();
+                user.put("email", email);
+                user.put("userName", userName);
+                // return ApiResult.success(email);
+                return ApiResult.success(user);
             }
         }catch (Exception e){
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();

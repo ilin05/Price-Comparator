@@ -10,7 +10,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @MapperScan("com.pricecomparator.mapper")
 public class PriceComparatorApplication {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         SpringApplication.run(PriceComparatorApplication.class, args);
     }
 

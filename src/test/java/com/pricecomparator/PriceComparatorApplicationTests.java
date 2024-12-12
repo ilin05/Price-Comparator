@@ -10,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import com.pricecomparator.entities.*;
 import org.openqa.selenium.edge.EdgeDriver;
 import org.openqa.selenium.edge.EdgeOptions;
+import org.springframework.boot.CommandLineRunner;
 
 import java.io.IOException;
 import java.net.URL;
@@ -278,5 +279,25 @@ class PriceComparatorApplicationTests {
     void testCheckFavoriteProductsPrice() throws IOException, InterruptedException {
         String email = "zhanglin20050530@163.com";
         ApiResult result = userService.checkFavoriteProductsPrice(email);
+    }
+
+    @Test
+    void testOpenBrowser() throws InterruptedException, IOException {
+        // 定义 Edge 浏览器的路径
+        String edgePath = "\"C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe\"";
+        // String edgePath = "msedge.exe";
+        // 定义四个命令
+        String[] commands = {
+                edgePath + " --remote-debugging-port=9222 --user-data-dir=\"D:\\selenium\\AutomationProfile\"",
+                edgePath + " --remote-debugging-port=9223 --user-data-dir=\"D:\\selenium\\AutomationProfile9223\"",
+                edgePath + " --remote-debugging-port=9224 --user-data-dir=\"D:\\selenium\\AutomationProfile9224\"",
+                edgePath + " --remote-debugging-port=9225 --user-data-dir=\"D:\\selenium\\AutomationProfile9225\""
+        };
+
+        // 执行每个命令
+        for (String command : commands) {
+            //executeCommand(command);
+            Process process = Runtime.getRuntime().exec(command);
+        }
     }
 }

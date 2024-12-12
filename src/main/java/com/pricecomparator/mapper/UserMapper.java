@@ -92,4 +92,8 @@ public interface UserMapper {
     // 获取商品价格历史
     @Select("select checked_at from prices where product_id = #{productId}")
     public List<String> getCheckedAt(String productId);
+
+    // 获取用户名
+    @Select("select username from users where email = #{email}")
+    public String getUserName(String email);
 }
