@@ -118,4 +118,10 @@ public class UserController {
         return userService.checkEmail(email);
     }
 
+    // 获取数据库中的所有商品
+    @GetMapping("/getAllProducts")
+    public ApiResult getAllProducts() {
+        return userService.getAllProducts();
+    }
+
 }

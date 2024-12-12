@@ -47,4 +47,7 @@ public interface UserService {
 
     // 验证邮箱
     ApiResult checkEmail(String email) throws MessagingException;
+
+    // 获取数据库中所有商品
+    ApiResult getAllProducts();
 }

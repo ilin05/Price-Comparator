@@ -337,4 +337,14 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    @Override
+    public ApiResult getAllProducts() {
+        try{
+            List<Product> products = userMapper.getAllProducts();
+            return ApiResult.success(products);
+        }catch (Exception e){
+            return ApiResult.failure("Error getting all products");
+        }
+    }
+
 }
