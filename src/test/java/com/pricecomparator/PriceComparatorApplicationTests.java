@@ -42,7 +42,8 @@ class PriceComparatorApplicationTests {
 
     @Test
     void testXMProductPrice() throws IOException {
-        String url = "https://www.xiaomiyoupin.com/detail?gid=162729";
+        // String url = "https://www.xiaomiyoupin.com/detail?gid=162729";
+        String url = "https://www.xiaomiyoupin.com/detail?gid=164039";
         Double price = ProductSearcher.getXMPrice(url);
         System.out.println("商品价格: " + price);
     }
@@ -112,7 +113,8 @@ class PriceComparatorApplicationTests {
 
     @Test
     void testGetTaoBaoProductPrice(){
-        String url = "https://a.m.taobao.com/i842805637189.htm";
+        // String url = "https://a.m.taobao.com/i842805637189.htm";
+        String url = "https://item.taobao.com/item.htm?priceTId=214782f517340142011683934e178e&utparam=%7B%22aplus_abtest%22%3A%22d39f7d07e3dff11496f5c4a1f18be8ce%22%7D&id=851814791038&ns=1&xxc=ad_ztc&skuId=5647834892403";
         try {
             Double price = ProductSearcher.getTaobaoPrice(url);
             System.out.println("商品价格: " + price);
@@ -135,7 +137,10 @@ class PriceComparatorApplicationTests {
 
     @Test
     void testGetVipProductPrice(){
-        String url = "https://detail.vip.com/detail-1711843802-6921026343352098970.html";
+        // String url = "https://detail.vip.com/detail-1712362686-6920850888252730142.html";
+        String url = "https://detail.vip.com/detail-1711573035-6921187472589355403.html";
+        // String url = "https://detail.vip.com/detail-3174353-2169717833.html";
+        // String url = "https://detail.vip.com/detail-1711573035-6921187472589404555.html";
         try {
             Double price = ProductSearcher.getVipPrice(url);
             System.out.println("商品价格: " + price);
@@ -277,7 +282,8 @@ class PriceComparatorApplicationTests {
 
     @Test
     void testCheckFavoriteProductsPrice() throws IOException, InterruptedException {
-        String email = "zhanglin20050530@163.com";
+        // String email = "zhanglin20050530@163.com";
+        String email = "3220100304@zju.edu.cn";
         ApiResult result = userService.checkFavoriteProductsPrice(email);
     }
 

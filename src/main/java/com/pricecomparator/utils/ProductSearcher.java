@@ -49,7 +49,7 @@ public class ProductSearcher {
                 }
                 // System.out.println("hello1");
                 String productLink = goodsItem.attr("href");
-                System.out.println(productLink);
+                // System.out.println(productLink);
                 // String pattern = "i(\\d+)\\.htm";
                 String pattern = "id=(\\d+)"; // 匹配商品id
                 Pattern r = Pattern.compile(pattern);
@@ -78,7 +78,7 @@ public class ProductSearcher {
                 product.setId("tb_" + productId);
                 product.setName(description);
                 product.setPrice(Double.parseDouble(price));
-                product.setLink(productLink);
+                product.setLink("https:" + productLink);
                 product.setImageUrl(pictUrl);
                 productList.add(product);
                 count++;
@@ -309,6 +309,11 @@ public class ProductSearcher {
             String pageSource = driver.getPageSource();
             driver.quit();
             Document document = Jsoup.parse(pageSource);
+            Element priceElement = document.getElementById("cart2Price");
+            if(priceElement == null){
+                System.out.println("未找到价格信息");
+                return null;
+            }
             String price = document.getElementById("cart2Price").text();
             Pattern pattern = Pattern.compile("\\d+\\.\\d+");
             Matcher matcher = pattern.matcher(price);
@@ -335,6 +340,11 @@ public class ProductSearcher {
             String pageSource = driver.getPageSource();
             driver.quit();
             Document document = Jsoup.parse(pageSource);
+            Element priceElement = document.getElementById("J-topBar-sell-price").select("em").first();
+            if(priceElement == null){
+                System.out.println("未找到价格信息");
+                return null;
+            }
             String price = document.getElementById("J-topBar-sell-price").select("em").text().replace("¥ ", "");
             System.out.println("price: " + price);
             return Double.parseDouble(price);
@@ -499,10 +509,10 @@ public class ProductSearcher {
 
     public static List<Product> checkFavoriteProductsPrice(List<Product> toCheckProducts){
         try {
-            for(Product product : toCheckProducts){
-                System.out.println(product);
-            }
-            System.out.println("--------------------");
+//            for(Product product : toCheckProducts){
+//                System.out.println(product);
+//            }
+//            System.out.println("--------------------");
             List<Product> TaoBaoProducts = new ArrayList<Product>();
             List<Product> SuningProducts = new ArrayList<Product>();
             List<Product> VipProducts = new ArrayList<Product>();

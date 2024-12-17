@@ -43,17 +43,20 @@ public class UserServiceImpl implements UserService {
             String email = user.getEmail();
             int count = userMapper.checkEmail(email);
             if(count > 0){
-                return ApiResult.failure("Email already in use");
+                return ApiResult.failure("该邮箱已被使用");
                 //throw new RuntimeException("Email already registered");
             }
-            System.out.println("hello2");
             String userName = user.getUserName();
-            System.out.println(userName);
+            if(userName.length() < 4){
+                return ApiResult.failure("用户名的长度不能小于4");
+            }
             int count2 = userMapper.checkUserName(userName);
-            System.out.println(count2);
             if(count2 > 0){
-                return ApiResult.failure("Username already in use");
+                return ApiResult.failure("用户名已被使用");
                 //throw new RuntimeException("User name already exists");
+            }
+            if(user.getPassword().length() < 6){
+                return ApiResult.failure("密码的长度不能小于6");
             }
             //System.out.println("count2: " + count2);
 
@@ -203,6 +206,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public ApiResult userLogin(String email, String password) {
         try{
+            if(userMapper.getUserByEmail(email) == null){
+                return ApiResult.failure("账户不存在！");
+            }
             int count = userMapper.judgePassword(email, HashUtils.sha256Hash(password));
             String userName = userMapper.getUserName(email);
             if(count != 1){
@@ -234,10 +240,13 @@ public class UserServiceImpl implements UserService {
 //            System.out.println("--------------------");
 
             List<Product> checkedProducts = ProductSearcher.checkFavoriteProductsPrice(products);
+//            for(Product product : checkedProducts){
+//                System.out.println(product);
+//            }
             for(Product product : checkedProducts){
                 userMapper.updatePrice(product.getId(), product.getPrice());
                 userMapper.addPrice(product.getId(), product.getPrice());
-                Double previousPrice = product.getPrice();
+                double previousPrice = product.getPrice();
                 if(previousPrice > product.getPrice()){
                     priceChangedProducts.add(product);
                 }
@@ -329,11 +338,12 @@ public class UserServiceImpl implements UserService {
             message.setRecipients(Message.RecipientType.TO, String.valueOf(new InternetAddress(email)));
 
             Transport.send(message);
+
             return ApiResult.success(sha256Code);
         }
         catch (Exception e){
             //TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return ApiResult.failure("Error sending email");
+            return ApiResult.failure("发送验证码失败，请查看邮箱是否有效！");
         }
     }
 
